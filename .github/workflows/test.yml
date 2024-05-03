@@ -30,19 +30,19 @@ jobs:
           .github/sync.fairinternal/ossify.sh
       - name: Setup Miniconda
         id: setup-miniconda
-        uses: ./github/actions/setup-miniconda
+        uses: ./.github/actions/setup-miniconda
       - name: Install Dependencies
         if: steps.setup-miniconda.outputs.cache-hit != 'true'
-        uses: ./github/actions/install-dep
+        uses: ./.github/actions/install-dep
       - name: Check PyTorch version
-        uses: ./github/actions/check-torch
+        uses: ./.github/actions/check-torch
         with:
           major: 2
           minor: 1
       - name: Run unit tests
-        uses: ./github/actions/run-unittests
+        uses: ./.github/actions/run-unittests
       - name: Run doc build
-        uses: ./github/actions/run-doc-build
+        uses: ./.github/actions/run-doc-build
       - name: Store test results
         uses: actions/upload-artifact@v4
         with:
