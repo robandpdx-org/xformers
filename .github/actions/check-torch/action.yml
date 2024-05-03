@@ -1,0 +1,21 @@
+name: check-torch
+description: 'Check PyTorch version'
+inputs:
+  major:
+    description: 'Major version of PyTorch'
+    required: true
+  minor:
+    description: 'Minor version of PyTorch'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Check the installed PyTorch version
+      shell: bash -el {0}
+      run: |
+        which python
+
+        python -c 'import torch; print("Torch version:", torch.__version__)'
+        python -c 'import torch; assert torch.__version__ > ( <<parameters.major>>,  <<parameters.minor>>), "wrong torch version"'
+        python -m torch.utils.collect_env
+        wget -O ~/venv/check_version.py https://raw.githubusercontent.com/min-xu-ai/check_verion/main/check_version.py

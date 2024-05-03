@@ -1,0 +1,14 @@
+name: run-doc-build
+description: 'Run documentation build'
+runs:
+  using: composite
+  steps:
+    - name: Testing doc build
+      shell: bash -el {0}
+      run: |
+        cd docs
+        # Don't install PyTorch as we already pulled it from conda, and we'd risk having two conflicting versions
+        python -m pip install $(grep -ivE "^#|^torch" requirements.txt)
+        make help
+        make singlehtml | tee make.out
+        ! tail make.out | grep -q warning
