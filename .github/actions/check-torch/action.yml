@@ -16,6 +16,6 @@ runs:
         which python
 
         python -c 'import torch; print("Torch version:", torch.__version__)'
-        python -c 'import torch; assert torch.__version__ > ( <<parameters.major>>,  <<parameters.minor>>), "wrong torch version"'
+        python -c 'import torch; assert torch.__version__ > ( ${{ inputs.major }},  ${{ inputs.minor }}), "wrong torch version"'
         python -m torch.utils.collect_env
         wget -O ~/venv/check_version.py https://raw.githubusercontent.com/min-xu-ai/check_verion/main/check_version.py
