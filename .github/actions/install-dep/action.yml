@@ -12,5 +12,5 @@ runs:
 
         conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -q
 
-        python -m pip install cmake
+        python -m pip install cmake setuptools
         python -m pip install -r requirements-benchmark.txt --progress-bar off
