@@ -1,0 +1,9 @@
+name: run-unittests
+description: 'Run unit tests'
+runs:
+  using: composite
+  steps:
+    - name: Run Unit Tests
+      shell: bash -el {0}
+      run: |
+        python -m pytest --random-order-bucket=global --junitxml=test-results/junit.xml --verbose --maxfail=20 tests

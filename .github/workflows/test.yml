@@ -1,0 +1,97 @@
+name: Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    # paths:
+    #   - 'xformers/**'
+    #   - '.github/workflows/test.yml'
+    #   - 'setup.py'
+    #   - 'requirements.*'
+    #   - '.circleci/**'
+jobs:
+  cpu_tests_py38:
+    runs-on: 4-core-ubuntu-latest
+    env:
+      MAX_JOBS: "4"
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Remove internal components, as they require GPU
+        run: |
+          mkdir -p .github/sync.fairinternal
+          touch .github/sync.fairinternal/ossify.sh
+          chmod +x .github/sync.fairinternal/ossify.sh
+          .github/sync.fairinternal/ossify.sh
+      - name: Setup Miniconda
+        id: setup-miniconda
+        uses: ./.github/actions/setup-miniconda
+      - name: Install Dependencies
+        if: steps.setup-miniconda.outputs.cache-hit != 'true'
+        uses: ./.github/actions/install-dep
+      - name: Check PyTorch version
+        uses: ./.github/actions/check-torch
+        with:
+          major: 2
+          minor: 1
+      - name: Install Repository
+        uses: ./.github/actions/install-repo
+      - name: Run unit tests
+        uses: ./.github/actions/run-unittests
+      - name: Run doc build
+        uses: ./.github/actions/run-doc-build
+      - name: Store test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpu-test-results
+          path: test-results
+  gpu_tests_cu118_sm75_T4:
+    runs-on: 4-core-ubuntu-gpu-t4
+    env:
+      CUDA_VERSION: "11.4"
+      CUDA_HOME: /usr/local/cuda-11.4
+      XFORMERS_FORCE_DISABLE_TRITON: "1"
+    defaults:
+      run:
+        shell: bash -el {0}
+    # container:
+    #   image: nvidia/cuda:11.4.3-devel-ubuntu20.04
+    steps:
+      # - name: Install git
+      #   run: apt-get update && apt-get install -y git
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - run: nvidia-smi
+      - name: Setup env variables
+        run: |
+          echo 'export TORCH_CUDA_ARCH_LIST="7.5"' >>  $GITHUB_ENV
+          echo 'export FORCE_CUDA=1' >>  $GITHUB_ENV
+      - name: Setup Miniconda
+        id: setup-miniconda
+        uses: ./.github/actions/setup-miniconda
+      - name: Install Dependencies
+        if: steps.setup-miniconda.outputs.cache-hit != 'true'
+        uses: ./.github/actions/install-dep
+      - name: Check PyTorch version
+        uses: ./.github/actions/check-torch
+        with:
+          major: 2
+          minor: 1
+      - name: Install Repository
+        uses: ./.github/actions/install-repo
+      - name: Run Unit Tests With Coverage
+        run: |
+          python -m pytest --junitxml=test-results/junit.xml --verbose --maxfail=20 --cov-report=xml --cov=./ tests
+          #Uploading test coverage for Python code
+          bash <(curl -s https://codecov.io/bash) -f coverage.xml -cF Python
+      - name: Store test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpu-test-results
+          path: test-results

@@ -1,0 +1,16 @@
+name: install-dep
+description: 'Install dependencies'
+runs:
+  using: composite
+  steps:
+    - name: Install Dependencies with torch nightly
+      shell: bash -el {0}
+      run: |
+        # for faster builds
+        conda install ninja
+        echo "Ninja version $(ninja --version)"
+
+        conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -q
+
+        python -m pip install cmake setuptools
+        python -m pip install -r requirements-benchmark.txt --progress-bar off

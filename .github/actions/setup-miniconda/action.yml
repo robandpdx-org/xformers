@@ -1,0 +1,46 @@
+name: setup-miniconda
+description: 'Setup Miniconda'
+inputs:
+  python-version:
+    description: 'Python version to install'
+    default: '3.8'
+  auto-update-conda:
+    description: 'Whether to update conda'
+    default: 'true'
+  activate-environment:
+    description: 'Name of the conda environment to activate'
+    default: 'xformers'
+outputs:
+  cache-hit:
+    description: 'Whether the cache was restored'
+    value: ${{ steps.cache.outputs.cache-hit }}
+runs:
+  using: composite
+  steps:
+    # use my fork of the conda-incubator/setup-miniconda@v3 action
+    # until this PR is merged: https://github.com/conda-incubator/setup-miniconda/pull/350
+    - name: Setup miniconda
+      uses: robandpdx-org/setup-miniconda@fix-conda-env-var
+      with:
+        python-version: ${{ inputs.python-version }}
+        auto-update-conda: ${{ inputs.auto-update-conda }}
+        activate-environment: ${{ inputs.activate-environment }}
+    - name: Get Date
+      id: get-date
+      run: echo "today=$(/bin/date -u '+%Y%m%d')" >> $GITHUB_OUTPUT
+      shell: bash
+    - name: Cache Conda env
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.CONDA }}/envs
+        key:
+          conda-${{ runner.os }}-${{ runner.arch }}-${{steps.get-date.outputs.today }}-${{ env.CACHE_NUMBER }}
+      env:
+        CACHE_NUMBER: '0'
+      id: cache
+    - name: Conda info
+      shell: bash -el {0}
+      run: |
+        conda config --set always_yes yes
+        conda install pip
+        conda info -a
