@@ -62,6 +62,8 @@ jobs:
     container:
       image: nvidia/cuda:11.4.3-devel-ubuntu20.04
     steps:
+      - name: Install git
+        run: apt-get update && apt-get install -y git
       - uses: actions/checkout@v4
         with:
           submodules: recursive
